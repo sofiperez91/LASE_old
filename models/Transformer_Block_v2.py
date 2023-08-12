@@ -5,7 +5,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 class Transformer_Block(nn.Module):
-    def __init__(self, c_in, c_out, alpha=0.2, device='cpu'):
+    def __init__(self, c_in, c_out, alpha=0.2, device='cuda'):
         super().__init__()
         self.device = device
         self.W_2 = nn.Parameter(torch.Tensor(1, c_out))
@@ -37,13 +37,13 @@ class Transformer_Block(nn.Module):
             attn_matrix = torch.Tensor(batch_size, num_nodes, num_nodes) 
             #.to(self.device)
             for b in range(batch_size):
-                attn_matrix [b] = pyg.utils.to_dense_adj(edge_index, edge_attr=attn_weights[b].reshape(-1)).to('cpu')
-                attn_matrix.to('cpu')
+                attn_matrix [b] = pyg.utils.to_dense_adj(edge_index, edge_attr=attn_weights[b].reshape(-1)).to('cuda')
+                attn_matrix.to('cuda')
                 
                 #print(attn_matrix)
             
         ## Calculate final output
-        x = torch.einsum("bij,bih->bjh", attn_matrix.to('cpu'), x2.to('cpu'))
+        x = torch.einsum("bij,bih->bjh", attn_matrix.to('cuda'), x2.to('cuda'))
         
         if return_attn_matrix:
             return x, attn_matrix
