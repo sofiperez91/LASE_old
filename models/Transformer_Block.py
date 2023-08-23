@@ -9,7 +9,7 @@ class Transformer_Block(nn.Module):
     def __init__(self, c_in, c_out):
         super().__init__()
 
-        self.lin1 = nn.Linear(c_in, c_out, bias=False) ## skip
+        # self.lin1 = nn.Linear(c_in, c_out, bias=False) ## skip
         self.lin2 = nn.Linear(c_in, c_out, bias=False) ## value
         self.lin3 = nn.Linear(c_in, c_out, bias=False) ## key
         self.lin4 = nn.Linear(c_in, c_out, bias=False) ## query
