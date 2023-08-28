@@ -22,9 +22,9 @@ device = 'cpu'
 epochs = 50000
 lr=1e-2
 gd_steps = 5
-MODEL_FILE='../saved_models/lase_unshared_d3_normalized_v2.pt'
-TRAIN_DATA_FILE='../data/sbm3_train.pkl'
-VAL_DATA_FILE='../data/sbm3_val.pkl'
+MODEL_FILE='../saved_models/lase_unshared_d3_normalized_v3.pt'
+TRAIN_DATA_FILE='./data/sbm3_train.pkl'
+VAL_DATA_FILE='./data/sbm3_val.pkl'
 
 n = [int(num_nodes/3), int(num_nodes/3), int(num_nodes/3)]
 p = [
@@ -42,17 +42,17 @@ ase = AdjacencySpectralEmbed(n_components=d, diag_aug=True, algorithm='full')
 Xhats = ase.fit_transform(adj_matrix)
 print("best error: "+str(np.linalg.norm(Xhats@Xhats.T-adj_matrix)))
 
-plt.figure(1)
-sns.heatmap(p,vmin=0,vmax=1)
-plt.title('P')
-plt.show(block=False)
-plt.pause(0.001)
+# plt.figure(1)
+# sns.heatmap(p,vmin=0,vmax=1)
+# plt.title('P')
+# plt.show(block=False)
+# plt.pause(0.001)
 
-plt.figure(2)
-sns.heatmap(Xhats@Xhats.T)
-plt.title('ASE')
-plt.show(block=False)    
-plt.pause(0.001)
+# plt.figure(2)
+# sns.heatmap(Xhats@Xhats.T)
+# plt.title('ASE')
+# plt.show(block=False)    
+# plt.pause(0.001)
     
 
 model = GD_Unroll(d,d, gd_steps)
@@ -137,14 +137,14 @@ for epoch in range(epochs):
 
 
 
-model.load_state_dict(torch.load(MODEL_FILE))
-model.to(device)
-model.eval()
+# model.load_state_dict(torch.load(MODEL_FILE))
+# model.to(device)
+# model.eval()
 
-out = model(x, edge_index, edge_index_2)
-loss = torch.norm((out@out.T - to_dense_adj(edge_index).squeeze(0)))
+# out = model(x, edge_index, edge_index_2)
+# loss = torch.norm((out@out.T - to_dense_adj(edge_index).squeeze(0)))
 
-plt.figure(3)
-sns.heatmap((out@out.T).detach().numpy())
-plt.show()
-plt.title('LASE unshared')
+# plt.figure(3)
+# sns.heatmap((out@out.T).detach().numpy())
+# plt.show()
+# plt.title('LASE unshared')
