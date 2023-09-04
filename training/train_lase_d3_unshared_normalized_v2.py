@@ -20,9 +20,9 @@ num_nodes = 150
 d = 3
 device = 'cpu'
 epochs = 50000
-lr=1e-2
+lr=1e-3
 gd_steps = 5
-MODEL_FILE='../saved_models/lase_unshared_d3_normalized_v3.pt'
+MODEL_FILE='../saved_models/lase_unshared_d3_normalized_randX.pt'
 TRAIN_DATA_FILE='./data/sbm3_train.pkl'
 VAL_DATA_FILE='./data/sbm3_val.pkl'
 
@@ -35,25 +35,14 @@ p = [
 
 edge_index = stochastic_blockmodel_graph(n, p).to(device)
 edge_index_2 = torch.ones([num_nodes,num_nodes],).nonzero().t().contiguous()
-x = torch.ones(num_nodes,d).to(device)
+# x = torch.ones(num_nodes,d).to(device)
+x = torch.rand((num_nodes, d)).to(device)
 
 adj_matrix = to_dense_adj(edge_index).squeeze(0).numpy()
 ase = AdjacencySpectralEmbed(n_components=d, diag_aug=True, algorithm='full')
 Xhats = ase.fit_transform(adj_matrix)
-print("best error: "+str(np.linalg.norm(Xhats@Xhats.T-adj_matrix)))
-
-# plt.figure(1)
-# sns.heatmap(p,vmin=0,vmax=1)
-# plt.title('P')
-# plt.show(block=False)
-# plt.pause(0.001)
-
-# plt.figure(2)
-# sns.heatmap(Xhats@Xhats.T)
-# plt.title('ASE')
-# plt.show(block=False)    
-# plt.pause(0.001)
-    
+best_error = np.linalg.norm(Xhats@Xhats.T-adj_matrix)
+print("best error: ", best_error)
 
 model = GD_Unroll(d,d, gd_steps)
 model.to(device)
@@ -91,6 +80,7 @@ train_loss_epoch=[]
 val_loss_epoch=[]
 min_val_loss = np.inf
 
+
 for epoch in range(epochs):
     # Train
     train_loss_step=[]
@@ -99,7 +89,7 @@ for epoch in range(epochs):
     for i, batch in enumerate(train_loop):  
         batch.to(device) 
         optimizer.zero_grad()
-        out = model(x, batch.edge_index, edge_index_2)
+        out = model(batch.x, batch.edge_index, edge_index_2)
         loss = torch.norm((out@out.T - to_dense_adj(batch.edge_index).squeeze(0)))
         loss.backward() 
         optimizer.step() 
@@ -116,7 +106,7 @@ for epoch in range(epochs):
     val_loop = tqdm(val_loader)
     for i, batch in enumerate(val_loop):
         batch.to(device)      
-        out = model(x, batch.edge_index, edge_index_2)
+        out = model(batch.x, batch.edge_index, edge_index_2)
         loss = torch.norm((out@out.T - to_dense_adj(batch.edge_index).squeeze(0)))
 
         val_loss_step.append(loss.detach().to('cpu').numpy())
@@ -129,22 +119,10 @@ for epoch in range(epochs):
         torch.save(model.state_dict(), MODEL_FILE)
         min_val_loss = val_loss_epoch[epoch]
         print("Best model updated")
+        print("Val loss: ", min_val_loss)
+        print("Best error: ", best_error)
 
     if early_stopper.early_stop(val_loss_epoch[epoch]):    
         optimal_epoch = np.argmin(val_loss_epoch)
         print("Optimal epoch: ", optimal_epoch)         
         break
-
-
-
-# model.load_state_dict(torch.load(MODEL_FILE))
-# model.to(device)
-# model.eval()
-
-# out = model(x, edge_index, edge_index_2)
-# loss = torch.norm((out@out.T - to_dense_adj(edge_index).squeeze(0)))
-
-# plt.figure(3)
-# sns.heatmap((out@out.T).detach().numpy())
-# plt.show()
-# plt.title('LASE unshared')

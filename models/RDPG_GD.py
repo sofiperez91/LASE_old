@@ -16,7 +16,7 @@ def RPDG_gradient(x, A):
 def RDPG_GD_fixstep(x, edge_index, tol=1e-3, alpha=0.001, max_iter=10000):
 
     xd = x
-    A = to_dense_adj(edge_index).squeeze()
+    A = to_dense_adj(edge_index, max_num_nodes=x.shape[0]).squeeze()
     d = -RPDG_gradient(x, A)
     k=0
 

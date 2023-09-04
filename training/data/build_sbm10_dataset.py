@@ -6,13 +6,13 @@ import pickle
 from torch_geometric.utils import stochastic_blockmodel_graph
 from torch_geometric.data import Data
 
-num_nodes = 1000
+num_nodes = 500
 d = 10
 device = 'cpu'
 TRAIN_DATA_FILE='./sbm10_train.pkl'
 VAL_DATA_FILE='./sbm10_val.pkl'
 
-n = [int(num_nodes/2), int(num_nodes/2),int(num_nodes/2), int(num_nodes/2),int(num_nodes/2), int(num_nodes/2),int(num_nodes/2), int(num_nodes/2),int(num_nodes/2), int(num_nodes/2)]
+n = [int(num_nodes/d), int(num_nodes/d),int(num_nodes/d), int(num_nodes/d),int(num_nodes/d), int(num_nodes/d),int(num_nodes/d), int(num_nodes/d),int(num_nodes/d), int(num_nodes/d)]
 
 p = [
      [0.9, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1],
@@ -38,6 +38,8 @@ for j in range(1000):
         df_train.append(data)
     else:
         df_val.append(data)
+    if j % 100 == 0:
+        print(j)
 
 with open(TRAIN_DATA_FILE, 'wb') as f:
     pickle.dump(df_train, f)
