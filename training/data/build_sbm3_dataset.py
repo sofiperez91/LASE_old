@@ -9,8 +9,8 @@ from torch_geometric.data import Data
 num_nodes = 150
 d = 3
 device = 'cpu'
-TRAIN_DATA_FILE='./data/sbm3_train.pkl'
-VAL_DATA_FILE='./data/sbm3_val.pkl'
+TRAIN_DATA_FILE='./sbm3_train.pkl'
+VAL_DATA_FILE='./sbm3_val.pkl'
 
 n = [int(num_nodes/3), int(num_nodes/3), int(num_nodes/3)]
 
