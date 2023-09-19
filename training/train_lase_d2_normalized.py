@@ -3,23 +3,19 @@ sys.path.append("../")
 
 import torch
 import numpy as np
-import torch_geometric as pyg
 from torch_geometric.utils import stochastic_blockmodel_graph, to_dense_adj
-from models.RDPG_GD_Unroll_shared import GD_Unroll
-import matplotlib.pyplot as plt
-import seaborn as sns
-from models.RDPG_GD import RDPG_GD_Armijo
+from models.RDPG_GD_Unroll_shared_normalized import GD_Unroll
+from models.early_stopper import EarlyStopper
 
 num_nodes = 100
 n_components = 2
 d = 2
 device = 'cpu'
-epochs = 5000
+epochs = 100000
 lr=1e-2
 gd_steps = 5
-MODEL_FILE='../saved_models/lase_shared_d2_normalized.pt'
+MODEL_FILE='../saved_models/lase_shared_d2_normalized_.pt'
 
-print(gd_steps)
 n = [int(num_nodes/2), int(num_nodes/2)]
 
 p = [
@@ -53,8 +49,10 @@ model.gd.gat.lin4.weight.requires_grad = False
 for param in model.parameters():
     print(param)
 
-
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+early_stopper = EarlyStopper(patience=50, min_delta=0)
+
+min_loss = np.inf
 
 for epoch in range(epochs):
     # Train
@@ -67,6 +65,10 @@ for epoch in range(epochs):
     optimizer.step() 
 
     if epoch % 500 == 0:
+        print(epoch)
         print(f'Train Loss: {loss}')
+    
+    if early_stopper.early_stop(loss):      
+        break
 
 torch.save(model.state_dict(), MODEL_FILE)

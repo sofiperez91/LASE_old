@@ -9,10 +9,10 @@ from torch_geometric.data import Data
 num_nodes = 150
 d = 3
 device = 'cpu'
-TRAIN_DATA_FILE='./sbm3_train.pkl'
-VAL_DATA_FILE='./sbm3_val.pkl'
+TRAIN_DATA_FILE='./sbm3_unbalanced_train_2.pkl'
+VAL_DATA_FILE='./sbm3_unbalanced_val_2.pkl'
 
-n = [int(num_nodes/3), int(num_nodes/3), int(num_nodes/3)]
+n = [70, 50, 30]
 
 p = [
      [0.5, 0.1, 0.3],
@@ -23,11 +23,11 @@ p = [
 df_train = []
 df_val = []
 
-for j in range(1000):
+for j in range(2000):
     x = torch.rand((num_nodes, d))
     edge_index = stochastic_blockmodel_graph(n, p).to(device)
     data = Data(x = x, edge_index = edge_index)
-    if j < 800:
+    if j < 1600:
         df_train.append(data)
     else:
         df_val.append(data)

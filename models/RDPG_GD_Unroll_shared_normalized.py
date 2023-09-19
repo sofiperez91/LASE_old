@@ -13,7 +13,7 @@ class GD_Block(nn.Module):
 
     def forward(self, input, edge_index, edge_index_2): 
         x_1 = self.gcn(input, edge_index) / input.shape[0] + ((input.shape[0]-1)/input.shape[0])*input
-        x_2 = self.gat(input, edge_index_2, use_softmax=False, return_attn_matrix=False) / input.shape[0]**3
+        x_2 = self.gat(input, edge_index_2, use_softmax=False, return_attn_matrix=False) / input.shape[0]
         return x_1 - x_2
 
 class GD_Unroll(nn.Module):
