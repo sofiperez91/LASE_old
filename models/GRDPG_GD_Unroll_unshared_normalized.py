@@ -1,26 +1,51 @@
 import torch.nn as nn
 from torch_geometric.nn import TAGConv, Sequential
-from models.Transformer_Block_v3 import Transformer_Block
+from torch_geometric.nn.conv import MessagePassing
 
-
-
-class GD_Block(nn.Module):
+class GD_Block(MessagePassing):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        
-        self.gcn = TAGConv(in_channels, out_channels, K=1, normalize=False, bias=False)
-        self.gat = Transformer_Block(in_channels, out_channels)
+        self.lin1 = nn.Linear(in_channels, out_channels, bias=False)
+        self.lin2 = nn.Linear(in_channels, out_channels, bias=False)
+        self.Q = nn.Parameter(torch.Tensor(1, out_channels))
 
     def forward(self, input, edge_index, edge_index_2): 
-        x_1 = self.gcn(input, edge_index) / input.shape[0] + ((input.shape[0]-1)/input.shape[0])*input
-        x_2 = self.gat(input, edge_index_2, use_softmax=False, return_attn_matrix=False) / input.shape[0]
+        
+        ## GCN Layer
+        x_1 = self.propagate(edge_index, x=input)
+        x_1 = input + self.lin1.forward(x_1)@torch.diag(self.Q[0])
+
+
+        ## GAT Layer
+        x2 = self.lin2(input)
+        _x3 = input@torch.diag(self.Q[0])
+        _x4 = input
+
+        ## Get indexes with edges
+        x3 = torch.index_select(_x3, 0, edge_index_2[0])
+        x4 = torch.index_select(_x4, 0, edge_index_2[1])
+
+        ## Calculate attention weights
+        attn_weights = torch.einsum("hc,hc->h", x3, x4)
+        attn_weights = attn_weights.reshape(-1)
+        adj_matrix = to_dense_adj(edge_index_2)
+        attn_matrix = to_dense_adj(edge_index_2, edge_attr=attn_weights).squeeze(0)
+
+        ## Calculate final output
+        x_2 = torch.einsum("ij,ih->jh", attn_matrix, x2)@torch.diag(self.Q[0])
+
         return x_1 - x_2
 
-class GD_Unroll(nn.Module):
+
+import torch.nn as nn
+from torch_geometric.nn import Sequential
+
+class gLASE(nn.Module):
     def __init__(self, in_channels, out_channels, gd_steps):
         super().__init__()
 
         self.gd_steps = gd_steps
+        self.activation = nn.Tanh()
         layers = []
 
         for _ in range(gd_steps):

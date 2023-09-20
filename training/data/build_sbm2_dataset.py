@@ -9,14 +9,14 @@ from torch_geometric.data import Data
 num_nodes = 100
 d = 2
 device = 'cpu'
-TRAIN_DATA_FILE='./sbm2_unbalanced_train.pkl'
-VAL_DATA_FILE='./sbm2_unbalanced_val.pkl'
+TRAIN_DATA_FILE='./sbm2_neg_train.pkl'
+VAL_DATA_FILE='./sbm2_neg_val.pkl'
 
-n = [70, 30]
+n = [50, 50]
 
 p = [
-     [0.9, 0.1],
-     [0.1, 0.5]
+     [0.1, 0.7],
+     [0.7, 0.1]
 ]
 
 df_train = []

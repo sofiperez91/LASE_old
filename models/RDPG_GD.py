@@ -1,6 +1,6 @@
 import torch_geometric as pyg
 import torch
-from torch_geometric.utils import to_dense_adj
+from torch_geometric.utils import to_dense_adj, stochastic_blockmodel_graph
 import numpy as np
 import scipy
 
@@ -13,6 +13,14 @@ def RDPG_cost(x, A, mask):
 def RPDG_gradient(x, A, mask):
     M = to_dense_adj(mask).squeeze(0)
     return 4*(M*(x@x.T-A))@x
+
+def GRDPG_cost(x, A, Q, mask):
+    M = to_dense_adj(mask).squeeze(0)
+    return 0.5*torch.norm((A - x@Q@x.T)*M)**2
+
+def GRDPG_gradient(x, A, Q, mask):
+    M = to_dense_adj(mask).squeeze(0)
+    return 2*(((M.T+M)*(x@Q@x.T)) - ((M+M.T)*A))@x@Q
 
 def solve_linear_system(A,b,xx):
     try:
@@ -84,3 +92,28 @@ def coordinate_descent(edge_index,M,d,X=None,tol=1e-5):
             R += k.T@k
 
     return X
+
+
+def GRDPG_GD_Armijo(x, edge_index, Q, M, max_iter=100, tol=1e-3, b=0.3, sigma=0.1, t=0.1):
+    A = to_dense_adj(edge_index).squeeze()
+    b=0.3; sigma=0.1 # Armijo parameters
+    t = 0.1
+    xd=x
+    k=0
+    last_jump=1
+    d = -GRDPG_gradient(xd, A, Q, M)
+    tol = tol*(torch.norm(d))
+
+    while (torch.norm(d) > tol) & (last_jump > 1e-16) & (k<max_iter):
+
+        # Armijo 
+        while (GRDPG_cost(xd+t*d,A,Q, M) > GRDPG_cost(xd,A,Q, M) - sigma*t*torch.norm(d)**2):
+            t=b*t
+            
+        xd = xd+t*d
+        last_jump = sigma*t*torch.norm(d)**2
+        t=t/(b)
+        k=k+1
+        d = -GRDPG_gradient(xd, A, Q, M)
+    
+    return xd, GRDPG_cost(xd, A, Q, M), k
