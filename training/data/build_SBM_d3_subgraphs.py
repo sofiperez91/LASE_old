@@ -11,14 +11,21 @@ from torch_geometric.utils import dropout_node
 d = 3
 num_nodes = 12000
 n = [6000, 4000, 2000]
+# p = [
+#      [0.9, 0.1, 0.1],
+#      [0.1, 0.5, 0.1],
+#      [0.1, 0.1, 0.7]
+# ]
+
 p = [
-     [0.9, 0.1, 0.1],
-     [0.1, 0.5, 0.1],
-     [0.1, 0.1, 0.7]
+     [0.6, 0.9, 0.8],
+     [0.9, 0.3, 0.7],
+     [0.8, 0.7, 0.5]
 ]
+
 edge_index = stochastic_blockmodel_graph(n, p)
 
-with open('./data/sbm3_unbalanced_original_graph_090.pkl', 'wb') as f:
+with open('./data/sbm3_unbalanced_negative_original_graph_095.pkl', 'wb') as f:
     pickle.dump(Data(edge_index=edge_index, num_nodes=num_nodes), f)
 
 # CREATE SUBGRAPHS
@@ -26,7 +33,7 @@ train_data = []
 val_data = []
 for i in range(1000):
     print(i)
-    sub_edge_index, _, _ = dropout_node(edge_index, p=0.90)
+    sub_edge_index, _, _ = dropout_node(edge_index, p=0.95)
     adj_matrix = to_dense_adj(sub_edge_index).squeeze(0)
     non_zero_rows = (adj_matrix.sum(dim=1) != 0)
     adj_matrix = adj_matrix[non_zero_rows]
@@ -44,8 +51,8 @@ for i in range(1000):
     else:
         val_data.append(Data(x=x, edge_index=sub_edge_index, edge_index_2=edge_index_2, ER07=ER07, ER05=ER05, ER03=ER03, num_nodes=n_nodes))
         
-with open('./data/sbm3_unbalanced_train_subgraphs_090.pkl', 'wb') as f:
+with open('./data/sbm3_unbalanced_negative_train_subgraphs_095.pkl', 'wb') as f:
     pickle.dump(train_data, f)
     
-with open('./data/sbm3_unbalanced_val_subgraphs_090.pkl', 'wb') as f:
+with open('./data/sbm3_unbalanced_negative_val_subgraphs_095.pkl', 'wb') as f:
     pickle.dump(val_data, f)
