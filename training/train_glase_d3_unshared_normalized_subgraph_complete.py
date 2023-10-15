@@ -19,10 +19,10 @@ import math
 from torch_geometric.utils import dropout_node
 
 
-MODEL_FILE='../saved_models/glase_unshared_d3_normalized_full_negative_subgraphs_095_unbalanced_complete.pt'
-TRAIN_DATA_FILE = './data/sbm3_unbalanced_negative_train_subgraphs_095.pkl'
-VAL_DATA_FILE = './data/sbm3_unbalanced_negative_val_subgraphs_095.pkl'
-ORIGINAL_GRAPH = './data/sbm3_unbalanced_negative_original_graph_095.pkl'
+MODEL_FILE='../saved_models/glase_unshared_d3_normalized_full_positive_subgraphs_095_unbalanced_complete.pt'
+TRAIN_DATA_FILE = './data/sbm3_unbalanced_positive_train_subgraphs_095.pkl'
+VAL_DATA_FILE = './data/sbm3_unbalanced_positive_val_subgraphs_095.pkl'
+ORIGINAL_GRAPH = './data/sbm3_unbalanced_positive_original_graph_095.pkl'
 
 ## Load data
 with open(TRAIN_DATA_FILE, 'rb') as f:
